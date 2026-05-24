@@ -125,8 +125,10 @@ exports.submitContact = async (req, res) => {
     await sendMail({
       to: 'adeyekunadelola0@gmail.com',
       subject: `New Contact Form Message: ${subject}`,
-      html: emailContent, 
-      text: `New message from ${name} (${email})\nSubject: ${subject}\n\nMessage:\n${message}\n\nReceived on: ${formattedDate}` 
+      html: emailContent,
+      text: `New message from ${name} (${email})\nSubject: ${subject}\n\nMessage:\n${message}\n\nReceived on: ${formattedDate}`,
+      replyTo: email,
+      replyToName: name
     });
 
     res.status(201).json({ message: 'Message received successfully' });

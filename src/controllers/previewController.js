@@ -21,7 +21,7 @@ if (REDIS_URL) {
 // Simple in-memory cache for link previews (fallback if Redis not configured).
 // Keys are the normalized URL string (lowercased); values are { value: <previewObj>, expires: <ms> }.
 const cache = new Map();
-const CACHE_TTL_MS = parseInt(process.env.PREVIEW_CACHE_TTL_MS, 10) || 60 * 60 * 1000; // default 1 hour
+const CACHE_TTL_MS = parseInt(process.env.PREVIEW_CACHE_TTL_MS, 10) || 24 * 60 * 60 * 1000; // default 24 hours
 const MAX_CACHE_ENTRIES = parseInt(process.env.PREVIEW_CACHE_MAX_ENTRIES, 10) || 1000;
 
 // Limits and sanitization

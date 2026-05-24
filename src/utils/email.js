@@ -1,40 +1,52 @@
-const nodemailer = require('nodemailer');
 const config = require('../config/config');
 
+const fetchClient = global.fetch || require('node-fetch');
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: config.EMAIL_USER,
-    pass: config.EMAIL_APP_PASSWORD
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
-});
-
-
-transporter.verify((error, success) => {
-  if (error) {
-    console.error('SMTP connection error:', error);
-  } else {
-    console.log('Server is ready to take our messages');
-  }
-});
+if (!config.BREVO_API_KEY) {
+  throw new Error('BREVO_API_KEY is not configured. Please set it in your environment.');
+}
 
 const sendMail = async (options) => {
   try {
-    const mailOptions = {
-      from: `"Portfolio Contact" <${config.EMAIL_USER}>`,
-      ...options,
+    const toRecipients = Array.isArray(options.to)
+      ? options.to.map((email) => ({ email }))
+      : [{ email: options.to }];
+
+    const payload = {
+      sender: {
+        name: config.BREVO_SENDER_NAME,
+        email: config.BREVO_SENDER_EMAIL || config.EMAIL_USER
+      },
+      to: toRecipients,
+      subject: options.subject,
+      htmlContent: options.html,
+      textContent: options.text
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Message sent: %s', info.messageId);
-    return true;
+    if (options.replyTo) {
+      payload.replyTo = {
+        email: options.replyTo,
+        name: options.replyToName || ''
+      };
+    }
+
+    const response = await fetchClient('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'api-key': config.BREVO_API_KEY
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const body = await response.text();
+    if (!response.ok) {
+      throw new Error(`Brevo API error ${response.status}: ${body}`);
+    }
+
+    console.log('Brevo email sent successfully');
+    return JSON.parse(body || '{}');
   } catch (error) {
     console.error('Email sending error:', error);
     throw error;
