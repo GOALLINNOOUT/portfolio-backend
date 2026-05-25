@@ -1,9 +1,13 @@
 require('dotenv').config();
 
+function normalizeOrigin(value) {
+  return value.trim().replace(/\/+$/, '');
+}
+
 function parseList(value) {
   return (value || '')
     .split(',')
-    .map((item) => item.trim())
+    .map(normalizeOrigin)
     .filter(Boolean);
 }
 

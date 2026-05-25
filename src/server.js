@@ -31,7 +31,7 @@ app.set('trust proxy', 1);
 const allowedOrigins = new Set(config.CORS_ORIGINS);
 
 function isAllowedOrigin(origin) {
-  return !origin || allowedOrigins.has(origin);
+  return !origin || allowedOrigins.has(origin.replace(/\/+$/, ''));
 }
 
 function requireAllowedOrigin(req, res, next) {
@@ -129,7 +129,7 @@ app.use('/uploads', (req, res, next) => {
 
   const origin = req.get('origin');
 
-  if (origin && allowedOrigins.has(origin)) {
+  if (origin && isAllowedOrigin(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
     res.header('Vary', 'Origin');
   }
