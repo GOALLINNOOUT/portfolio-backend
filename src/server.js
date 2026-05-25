@@ -28,19 +28,30 @@ const app = express();
 // Trust proxy for correct client IP and rate limiting
 app.set('trust proxy', 1);
 
+const allowedOrigins = new Set([
+  config.CLIENT_URL,
+  process.env.CORS_ORIGIN,
+  process.env.FRONTEND_URL,
+  'https://adelaportfolio.vercel.app',
+  'http://localhost:3000'
+].filter(Boolean));
 
-app.use(cors({
-  origin: [
-    'https://portfolio-frontend-wheat-ten.vercel.app',
-    'http://localhost:2000',
-    'https://adelaportfolio.vercel.app'
-  ],
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   exposedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
   optionsSuccessStatus: 200
-}));
+};
+
+app.use(cors(corsOptions));
 
 
 // Use Helmet with a relaxed Content Security Policy for SEO endpoint images
@@ -63,7 +74,7 @@ app.use(helmet({
   }
 }));
 
-app.options('*', cors());
+app.options('*', cors(corsOptions));
 
 
 app.use(express.json());
