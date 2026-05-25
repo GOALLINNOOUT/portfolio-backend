@@ -16,6 +16,7 @@ module.exports = {
   MONGODB_URI: process.env.MONGODB_URI,
   JWT_SECRET: process.env.JWT_SECRET,
   NODE_ENV: process.env.NODE_ENV || 'production',
+  DEBUG: process.env.DEBUG === 'true',
   CLIENT_URL: process.env.CLIENT_URL,
   FRONTEND_URL: process.env.FRONTEND_URL,
   CORS_ORIGINS: [

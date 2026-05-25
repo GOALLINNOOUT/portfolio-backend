@@ -10,6 +10,12 @@ const config = require('./config/config');
 const ensureUploadDirectories = require('./utils/ensureDirectories');
 const fs = require('fs');
 
+if (!config.DEBUG) {
+  console.log = () => {};
+  console.info = () => {};
+  console.debug = () => {};
+  console.warn = () => {};
+}
 
 ensureUploadDirectories();
 
