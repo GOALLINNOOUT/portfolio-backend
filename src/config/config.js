@@ -1,11 +1,25 @@
 require('dotenv').config();
 
+function parseList(value) {
+  return (value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
 module.exports = {
   PORT: process.env.PORT || 5000,
   MONGODB_URI: process.env.MONGODB_URI,
   JWT_SECRET: process.env.JWT_SECRET,
   NODE_ENV: process.env.NODE_ENV || 'production',
-  CLIENT_URL: process.env.CLIENT_URL || 'https://adelaportfolio.vercel.app',
+  CLIENT_URL: process.env.CLIENT_URL,
+  FRONTEND_URL: process.env.FRONTEND_URL,
+  CORS_ORIGINS: [
+    ...parseList(process.env.CORS_ORIGINS),
+    ...parseList(process.env.CORS_ORIGIN),
+    ...parseList(process.env.CLIENT_URL),
+    ...parseList(process.env.FRONTEND_URL)
+  ],
 
   EMAIL_USER: process.env.EMAIL_USER,
   EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,

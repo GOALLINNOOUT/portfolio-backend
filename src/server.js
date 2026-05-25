@@ -28,17 +28,25 @@ const app = express();
 // Trust proxy for correct client IP and rate limiting
 app.set('trust proxy', 1);
 
-const allowedOrigins = new Set([
-  config.CLIENT_URL,
-  process.env.CORS_ORIGIN,
-  process.env.FRONTEND_URL,
-  'https://adelaportfolio.vercel.app',
-  'http://localhost:3000'
-].filter(Boolean));
+const allowedOrigins = new Set(config.CORS_ORIGINS);
+
+function isAllowedOrigin(origin) {
+  return !origin || allowedOrigins.has(origin);
+}
+
+function requireAllowedOrigin(req, res, next) {
+  const origin = req.get('origin');
+
+  if (isAllowedOrigin(origin)) {
+    return next();
+  }
+
+  return res.status(403).json({ message: 'Origin not allowed' });
+}
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.has(origin)) {
+    if (isAllowedOrigin(origin)) {
       return callback(null, true);
     }
 
@@ -52,6 +60,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.use(['/api', '/debug', '/uploads'], requireAllowedOrigin);
 
 
 // Use Helmet with a relaxed Content Security Policy for SEO endpoint images
@@ -118,9 +127,15 @@ app.use('/uploads', (req, res, next) => {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
-  res.header('Access-Control-Allow-Origin', '*');
+  const origin = req.get('origin');
+
+  if (origin && allowedOrigins.has(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET');
-  res.header('Access-Control-Allow-Headers', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
   res.header('Cross-Origin-Resource-Policy', 'cross-origin');
 
   if (!fs.existsSync(filePath)) {
